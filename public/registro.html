@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrarse - EventosQR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #a855f7;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 32px;
+      color: #aaa;
+      font-weight: 400;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: white;
+      font-size: 15px;
+      margin-bottom: 20px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #a855f7;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #a855f7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #9333ea;
+    }
+
+    .mensaje {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .error { color: #f87171; }
+    .exito { color: #4ade80; }
+
+    .link {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .link a {
+      color: #a855f7;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo">EventosQR</div>
+    <h2>Creá tu cuenta</h2>
+
+    <label>Nombre</label>
+    <input type="text" id="nombre" placeholder="Tu nombre">
+
+    <label>Email</label>
+    <input type="email" id="email" placeholder="tu@email.com">
+
+    <label>Contraseña</label>
+    <input type="password" id="password" placeholder="Mínimo 6 caracteres">
+
+    <button onclick="registrarse()">Crear cuenta</button>
+
+    <div class="mensaje" id="mensaje"></div>
+
+    <div class="link">
+      ¿Ya tenés cuenta? <a href="/login.html">Iniciá sesión</a>
+    </div>
+  </div>
+
+  <script>
+    async function registrarse() {
+      const nombre = document.getElementById('nombre').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const mensaje = document.getElementById('mensaje');
+
+      try {
+        const response = await fetch('/api/auth/registro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          mensaje.className = 'mensaje exito';
+          mensaje.textContent = '¡Cuenta creada! Redirigiendo...';
+          setTimeout(() => window.location.href = '/login.html', 1500);
+        } else {
+          mensaje.className = 'mensaje error';
+          mensaje.textContent = data.error;
+        }
+      } catch (error) {
+        mensaje.className = 'mensaje error';
+        mensaje.textContent = 'Error de conexión';
+      }
+    }
+  </script>
+
+</body>
+</html>
