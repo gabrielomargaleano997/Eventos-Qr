@@ -229,12 +229,14 @@
 lista.innerHTML = eventos.map(e => `
   <div class="evento-item">
     <div class="evento-info">
-      <h3>${e.name}</h3>
+      <h3><a href="/evento.html?id=${e.id}" style="color: white; text-decoration: none;">${e.name}</a></h3>
       <span>📅 ${new Date(e.date).toLocaleDateString('es-AR')}</span>
       ${e.location ? `<span>📍 ${e.location}</span>` : ''}
+      <span>✅ ${e.accesos} accesos validados</span>
     </div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <button onclick="verQR(${e.id})" style="background: #a855f7; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">Ver QR</button>
+<button onclick="eliminarEvento(${e.id})" style="background: #4a1a1a; border: 1px solid #6a2a2a; padding: 8px 16px; border-radius: 8px; color: #f87171; cursor: pointer;">Eliminar</button>
       <span class="evento-badge">Activo</span>
     </div>
   </div>
@@ -312,6 +314,26 @@ lista.innerHTML = eventos.map(e => `
       </body>
     </html>
   `);
+}
+async function eliminarEvento(eventoId) {
+  if (!confirm('¿Seguro que querés eliminar este evento?')) return;
+
+  try {
+    const response = await fetch(`/api/events/${eventoId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      cargarEventos();
+    } else {
+      alert(data.error || 'Error al eliminar');
+    }
+  } catch (error) {
+    alert('Error de conexión');
+  }
 }
   </script>
 
