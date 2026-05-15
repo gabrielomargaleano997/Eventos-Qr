@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validar acceso - EventosQR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo { font-size: 24px; font-weight: 700; color: #a855f7; margin-bottom: 24px; }
+    .resultado { font-size: 80px; margin-bottom: 16px; }
+    h2 { font-size: 24px; margin-bottom: 8px; }
+    p { color: #aaa; font-size: 15px; margin-bottom: 8px; }
+    .btn {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 12px 24px;
+      background: #a855f7;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">EventosQR</div>
+    <div class="resultado" id="icono">⏳</div>
+    <h2 id="titulo">Validando...</h2>
+    <p id="descripcion"></p>
+    <p id="evento"></p>
+    <a href="/dashboard.html" class="btn">Volver al dashboard</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const eventoId = params.get('id');
+
+    async function validar() {
+      if (!eventoId) {
+        document.getElementById('icono').textContent = '❌';
+        document.getElementById('titulo').textContent = 'QR inválido';
+        document.getElementById('descripcion').textContent = 'No se encontró el evento.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/events/${eventoId}/validar`, {
+          method: 'POST'
+        });
+        const data = await response.json();
+
+        if (data.valido) {
+          document.getElementById('icono').textContent = '✅';
+          document.getElementById('titulo').textContent = 'Acceso válido';
+          document.getElementById('evento').textContent = '🎟️ ' + data.evento.name;
+          document.getElementById('descripcion').textContent = 'El ingreso fue registrado correctamente.';
+        } else {
+          document.getElementById('icono').textContent = '❌';
+          document.getElementById('titulo').textContent = 'Acceso inválido';
+          document.getElementById('descripcion').textContent = data.mensaje;
+        }
+      } catch (error) {
+        document.getElementById('icono').textContent = '❌';
+        document.getElementById('titulo').textContent = 'Error de conexión';
+      }
+    }
+
+    validar();
+  </script>
+</body>
+</html>

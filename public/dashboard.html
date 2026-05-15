@@ -6,11 +6,7 @@
   <title>Dashboard - EventosQR</title>
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -26,11 +22,7 @@
       border-bottom: 1px solid #222;
     }
 
-    .logo {
-      font-size: 24px;
-      font-weight: 700;
-      color: #a855f7;
-    }
+    .logo { font-size: 24px; font-weight: 700; color: #a855f7; }
 
     .logout {
       background: #a855f7;
@@ -41,24 +33,18 @@
       cursor: pointer;
     }
 
-    .container {
-      padding: 60px 40px;
-    }
+    .container { padding: 40px 40px; }
 
-    h1 {
-      font-size: 42px;
-      margin-bottom: 16px;
-    }
+    h1 { font-size: 42px; margin-bottom: 16px; }
+    h2 { font-size: 24px; margin-bottom: 20px; }
 
-    p {
-      color: #aaa;
-      margin-bottom: 40px;
-    }
+    p { color: #aaa; margin-bottom: 40px; }
 
     .cards {
       display: flex;
       gap: 24px;
       flex-wrap: wrap;
+      margin-bottom: 40px;
     }
 
     .card {
@@ -69,14 +55,86 @@
       width: 260px;
     }
 
-    .card h2 {
-      font-size: 40px;
-      margin-bottom: 10px;
-      color: #a855f7;
+    .card h2 { font-size: 40px; margin-bottom: 10px; color: #a855f7; }
+    .card span { color: #888; }
+
+    /* Formulario */
+    .form-card {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid #2a2a2a;
+      max-width: 500px;
     }
 
-    .card span {
+    .form-group { margin-bottom: 15px; }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #aaa;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: white;
+      font-family: inherit;
+    }
+
+    .btn-purple {
+      background: #a855f7;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Lista de eventos */
+    .eventos-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 700px;
+    }
+
+    .evento-item {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .evento-info h3 { font-size: 18px; margin-bottom: 6px; }
+
+    .evento-info span {
       color: #888;
+      font-size: 14px;
+      margin-right: 16px;
+    }
+
+    .evento-badge {
+      background: #a855f720;
+      color: #a855f7;
+      border: 1px solid #a855f7;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .sin-eventos {
+      color: #555;
+      font-size: 15px;
+      padding: 20px 0;
     }
   </style>
 </head>
@@ -85,34 +143,57 @@
 
   <nav>
     <div class="logo">EventosQR</div>
-
-    <button class="logout" onclick="logout()">
-      Cerrar sesión
-    </button>
+    <button class="logout" onclick="logout()">Cerrar sesión</button>
   </nav>
 
   <div class="container">
     <h1>Dashboard</h1>
-
     <p>Bienvenido al panel de gestión de eventos.</p>
 
     <div class="cards">
-
       <div class="card">
-        <h2>0</h2>
+        <h2 id="totalEventos">0</h2>
         <span>Eventos creados</span>
       </div>
-
       <div class="card">
         <h2>0</h2>
         <span>Entradas vendidas</span>
       </div>
-
       <div class="card">
         <h2>0</h2>
         <span>Ingresos validados</span>
       </div>
+    </div>
+  </div>
 
+  <div class="container">
+    <h2>Crear nuevo evento</h2>
+    <form id="eventForm" class="form-card">
+      <div class="form-group">
+        <label>Nombre del evento</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" name="date" required>
+      </div>
+      <div class="form-group">
+        <label>Ubicación</label>
+        <input type="text" name="location">
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea name="description" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn-purple">Crear evento</button>
+    </form>
+    <div id="mensaje" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none;"></div>
+  </div>
+
+  <div class="container">
+    <h2>Mis eventos</h2>
+    <div id="eventosList" class="eventos-lista">
+      <p class="sin-eventos">Cargando eventos...</p>
     </div>
   </div>
 
@@ -127,6 +208,111 @@
       localStorage.removeItem('token');
       window.location.href = '/login.html';
     }
+
+    // Cargar eventos
+    async function cargarEventos() {
+      try {
+        const response = await fetch('/api/events', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const eventos = await response.json();
+
+        const lista = document.getElementById('eventosList');
+        const total = document.getElementById('totalEventos');
+        total.textContent = eventos.length;
+
+        if (eventos.length === 0) {
+          lista.innerHTML = '<p class="sin-eventos">No tenés eventos creados todavía.</p>';
+          return;
+        }
+
+lista.innerHTML = eventos.map(e => `
+  <div class="evento-item">
+    <div class="evento-info">
+      <h3>${e.name}</h3>
+      <span>📅 ${new Date(e.date).toLocaleDateString('es-AR')}</span>
+      ${e.location ? `<span>📍 ${e.location}</span>` : ''}
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button onclick="verQR(${e.id})" style="background: #a855f7; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">Ver QR</button>
+      <span class="evento-badge">Activo</span>
+    </div>
+  </div>
+`).join('');
+
+      } catch (error) {
+        document.getElementById('eventosList').innerHTML = '<p class="sin-eventos">Error al cargar eventos.</p>';
+      }
+    }
+
+    cargarEventos();
+
+    // Crear evento
+    const eventForm = document.getElementById('eventForm');
+    const mensajeDiv = document.getElementById('mensaje');
+
+    eventForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(eventForm);
+      const data = {
+        name: formData.get('name'),
+        date: formData.get('date'),
+        location: formData.get('location'),
+        description: formData.get('description')
+      };
+
+      try {
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          mensajeDiv.style.display = 'block';
+          mensajeDiv.style.background = '#1a4a1a';
+          mensajeDiv.style.border = '1px solid #2a6a2a';
+          mensajeDiv.innerHTML = '✅ ' + result.message;
+          eventForm.reset();
+          cargarEventos(); // Actualiza la lista
+        } else {
+          mensajeDiv.style.display = 'block';
+          mensajeDiv.style.background = '#4a1a1a';
+          mensajeDiv.style.border = '1px solid #6a2a2a';
+          mensajeDiv.innerHTML = '❌ ' + (result.error || 'Error al crear evento');
+        }
+
+        setTimeout(() => { mensajeDiv.style.display = 'none'; }, 3000);
+
+      } catch (error) {
+        mensajeDiv.style.display = 'block';
+        mensajeDiv.style.background = '#4a1a1a';
+        mensajeDiv.innerHTML = '❌ Error de conexión';
+      }
+    });
+    async function verQR(eventoId) {
+  const response = await fetch(`/api/events/${eventoId}/qr`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+
+  const ventana = window.open('', '_blank');
+  ventana.document.write(`
+    <html>
+      <body style="background:#0f0f0f; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; color:white; font-family:sans-serif;">
+        <h2 style="color:#a855f7; margin-bottom:16px;">${data.evento.name}</h2>
+        <img src="${data.qr}" style="border-radius:12px;">
+        <p style="margin-top:16px; color:#aaa;">Escaneá este QR para validar el acceso</p>
+      </body>
+    </html>
+  `);
+}
   </script>
 
 </body>
